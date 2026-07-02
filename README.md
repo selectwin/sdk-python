@@ -96,7 +96,7 @@ spec) + a **hand-written DX shell**:
 
 - **Typed clients** — `Selectwin(api_key=…)` (sync) and `AsyncSelectwin(api_key=…)`
   (async context manager) exposing `sw.transactions`, `sw.subscriptions`, `sw.customers`, …
-- **Stripe-style aliases** per resource (`create` / `retrieve` / `update` / `list` /
+- **Concise aliases** per resource (`create` / `retrieve` / `update` / `list` /
   `delete` + custom verbs), accepting a dict or the generated body model; `.raw` exposes
   the full generated surface.
 - **Typed errors** by HTTP status / `error.code`: `CardError` (402, `display_message`/
@@ -118,7 +118,7 @@ key prefix (`sk_test_` / `sk_live_`).
 ```
 src/selectwin/
   _core/            # openapi-python-client output — DO NOT edit; synced from selectwin-sdks
-  resources.py      # GENERATED Stripe-style namespaces (sync + async) — DO NOT edit
+  resources.py      # GENERATED resource namespaces (sync + async) — DO NOT edit
   webhook_events.py # GENERATED webhook Event Catalog (types + guard) — DO NOT edit
   errors.py         # typed error hierarchy
   http.py           # httpx transport (retries/timeout) + hooks (idempotency, UA) + error mapping
