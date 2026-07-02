@@ -1,0 +1,7 @@
+# Normalise line endings: LF in the repo and on checkout, on every OS.
+* text=auto eol=lf
+
+# Collapse generated files in GitHub diffs / exclude from language stats.
+src/selectwin/_core/**   linguist-generated=true
+src/selectwin/resources.py linguist-generated=true
+src/selectwin/webhook_events.py linguist-generated=true
