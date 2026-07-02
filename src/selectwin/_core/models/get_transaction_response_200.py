@@ -82,6 +82,7 @@ class GetTransactionResponse200:
         disputes (list[GetTransactionResponse200DisputesType0Item] | None):
         timeline (list[GetTransactionResponse200TimelineItem]):
         callback (GetTransactionResponse200CallbackType0 | None):
+        processing_time_ms (int | None):
         updated_at (str):
         created_at (str):
         shipping (Any | Unset):
@@ -114,6 +115,7 @@ class GetTransactionResponse200:
     disputes: list[GetTransactionResponse200DisputesType0Item] | None
     timeline: list[GetTransactionResponse200TimelineItem]
     callback: GetTransactionResponse200CallbackType0 | None
+    processing_time_ms: int | None
     updated_at: str
     created_at: str
     shipping: Any | Unset = UNSET
@@ -242,6 +244,9 @@ class GetTransactionResponse200:
         else:
             callback = self.callback
 
+        processing_time_ms: int | None
+        processing_time_ms = self.processing_time_ms
+
         updated_at = self.updated_at
 
         created_at = self.created_at
@@ -286,6 +291,7 @@ class GetTransactionResponse200:
                 "disputes": disputes,
                 "timeline": timeline,
                 "callback": callback,
+                "processingTimeMs": processing_time_ms,
                 "updatedAt": updated_at,
                 "createdAt": created_at,
             }
@@ -589,6 +595,13 @@ class GetTransactionResponse200:
 
         callback = _parse_callback(d.pop("callback"))
 
+        def _parse_processing_time_ms(data: object) -> int | None:
+            if data is None:
+                return data
+            return cast(int | None, data)
+
+        processing_time_ms = _parse_processing_time_ms(d.pop("processingTimeMs"))
+
         updated_at = d.pop("updatedAt")
 
         created_at = d.pop("createdAt")
@@ -636,6 +649,7 @@ class GetTransactionResponse200:
             disputes=disputes,
             timeline=timeline,
             callback=callback,
+            processing_time_ms=processing_time_ms,
             updated_at=updated_at,
             created_at=created_at,
             shipping=shipping,

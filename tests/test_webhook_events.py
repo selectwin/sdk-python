@@ -4,7 +4,7 @@ from selectwin import webhook_events as we
 
 def test_catalog_is_complete_and_unique():
     # Tracks the spec's event enum (regen on scripts/sync_core.py).
-    assert len(WEBHOOK_EVENT_TYPES) == 69
+    assert len(WEBHOOK_EVENT_TYPES) == 72
     assert len(set(WEBHOOK_EVENT_TYPES)) == len(WEBHOOK_EVENT_TYPES)
     for t in ("transaction.approved", "subscription.paused", "checkout.session.completed", "webhook.ping"):
         assert t in WEBHOOK_EVENT_TYPES

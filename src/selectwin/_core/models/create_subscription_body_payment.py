@@ -27,13 +27,15 @@ T = TypeVar("T", bound="CreateSubscriptionBodyPayment")
 
 @_attrs_define
 class CreateSubscriptionBodyPayment:
-    """
-    Attributes:
-        method (CreateSubscriptionBodyPaymentMethod | Unset):  Default: CreateSubscriptionBodyPaymentMethod.CREDIT.
-        card (CreateSubscriptionBodyPaymentCard | Unset):
-        installments (int | Unset):  Default: 1.
-        pix (CreateSubscriptionBodyPaymentPix | Unset):
-        billet (CreateSubscriptionBodyPaymentBillet | Unset):
+    """**Regra:** Com `method=credit`, `card` é **obrigatório** (`card.id` de um cartão salvo, ou cartão completo inline:
+    holderName, expirationMonth, expirationYear, numbering, securityCode).
+
+        Attributes:
+            method (CreateSubscriptionBodyPaymentMethod | Unset):  Default: CreateSubscriptionBodyPaymentMethod.CREDIT.
+            card (CreateSubscriptionBodyPaymentCard | Unset):
+            installments (int | Unset):  Default: 1.
+            pix (CreateSubscriptionBodyPaymentPix | Unset):
+            billet (CreateSubscriptionBodyPaymentBillet | Unset):
     """
 
     method: CreateSubscriptionBodyPaymentMethod | Unset = (

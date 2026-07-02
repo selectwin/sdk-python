@@ -27,16 +27,18 @@ T = TypeVar("T", bound="CreateTransactionBodyPayment")
 
 @_attrs_define
 class CreateTransactionBodyPayment:
-    """
-    Attributes:
-        method (CreateTransactionBodyPaymentMethod):
-        currency (str | Unset): ISO 4217 currency code Default: 'BRL'.
-        installments (int | Unset):  Default: 1.
-        capture (bool | Unset):  Default: True.
-        finance_installments (bool | Unset):  Default: True.
-        card (CreateTransactionBodyPaymentCard | Unset):
-        pix (CreateTransactionBodyPaymentPix | Unset):
-        billet (CreateTransactionBodyPaymentBillet | Unset):
+    """**Regra:** Com `method=credit`, `card` é **obrigatório** (`card.id` de um cartão salvo, ou cartão completo inline:
+    holderName, expirationMonth, expirationYear, numbering, securityCode).
+
+        Attributes:
+            method (CreateTransactionBodyPaymentMethod):
+            currency (str | Unset): ISO 4217 currency code Default: 'BRL'.
+            installments (int | Unset):  Default: 1.
+            capture (bool | Unset):  Default: True.
+            finance_installments (bool | Unset):  Default: True.
+            card (CreateTransactionBodyPaymentCard | Unset):
+            pix (CreateTransactionBodyPaymentPix | Unset):
+            billet (CreateTransactionBodyPaymentBillet | Unset):
     """
 
     method: CreateTransactionBodyPaymentMethod

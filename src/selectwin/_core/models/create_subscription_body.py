@@ -47,9 +47,12 @@ T = TypeVar("T", bound="CreateSubscriptionBody")
 class CreateSubscriptionBody:
     """
     Attributes:
-        customer (CreateSubscriptionBodyCustomer):
+        customer (CreateSubscriptionBodyCustomer): **Regra:** Obrigatório informar `id` (cliente salvo) **OU** os dados
+            inline `firstName` + `lastName` + `email` (a API faz find-or-create). Enviar `customer: {}` é rejeitado.
         items (list[CreateSubscriptionBodyItemsItem]):
-        payment (CreateSubscriptionBodyPayment):
+        payment (CreateSubscriptionBodyPayment): **Regra:** Com `method=credit`, `card` é **obrigatório** (`card.id` de
+            um cartão salvo, ou cartão completo inline: holderName, expirationMonth, expirationYear, numbering,
+            securityCode).
         name (str | Unset):
         description (str | Unset):
         billing (CreateSubscriptionBodyBilling | Unset):

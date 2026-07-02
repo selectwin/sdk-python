@@ -16,9 +16,11 @@ T = TypeVar("T", bound="CreateTransactionBodyBilling")
 
 @_attrs_define
 class CreateTransactionBodyBilling:
-    """
-    Attributes:
-        address (CreateTransactionBodyBillingAddress):
+    """**Regra:** Obrigatório quando `payment.method=billet` (endereço do pagador): `billing.address.id` (salvo) ou
+    endereço inline com postcode + street + number.
+
+        Attributes:
+            address (CreateTransactionBodyBillingAddress):
     """
 
     address: CreateTransactionBodyBillingAddress

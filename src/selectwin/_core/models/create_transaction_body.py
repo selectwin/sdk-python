@@ -36,9 +36,13 @@ class CreateTransactionBody:
     """
     Attributes:
         amount (int):
-        payment (CreateTransactionBodyPayment):
-        customer (CreateTransactionBodyCustomer):
-        billing (CreateTransactionBodyBilling | Unset):
+        payment (CreateTransactionBodyPayment): **Regra:** Com `method=credit`, `card` é **obrigatório** (`card.id` de
+            um cartão salvo, ou cartão completo inline: holderName, expirationMonth, expirationYear, numbering,
+            securityCode).
+        customer (CreateTransactionBodyCustomer): **Regra:** Obrigatório informar `id` (cliente salvo) **OU** os dados
+            inline `firstName` + `lastName` + `email` (a API faz find-or-create). Enviar `customer: {}` é rejeitado.
+        billing (CreateTransactionBodyBilling | Unset): **Regra:** Obrigatório quando `payment.method=billet` (endereço
+            do pagador): `billing.address.id` (salvo) ou endereço inline com postcode + street + number.
         items (list[CreateTransactionBodyItemsItem] | Unset):
         discounts (list[CreateTransactionBodyDiscountsItem] | Unset):
         splits (list[CreateTransactionBodySplitsItem] | Unset):

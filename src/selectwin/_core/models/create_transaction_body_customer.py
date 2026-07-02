@@ -27,20 +27,22 @@ T = TypeVar("T", bound="CreateTransactionBodyCustomer")
 
 @_attrs_define
 class CreateTransactionBodyCustomer:
-    """
-    Attributes:
-        id (str | Unset): Public identifier (cus_…)
-        first_name (str | Unset):
-        last_name (str | Unset):
-        full_name (str | Unset):
-        email (str | Unset):
-        document (CreateTransactionBodyCustomerDocument | Unset):
-        telephone (CreateTransactionBodyCustomerTelephone | Unset):
-        external_reference (str | Unset):
-        gender (CreateTransactionBodyCustomerGender | Unset):
-        birthdate (str | Unset):
-        additional_emails (list[str] | Unset):
-        metadata (CreateTransactionBodyCustomerMetadata | Unset):
+    """**Regra:** Obrigatório informar `id` (cliente salvo) **OU** os dados inline `firstName` + `lastName` + `email` (a
+    API faz find-or-create). Enviar `customer: {}` é rejeitado.
+
+        Attributes:
+            id (str | Unset): Public identifier (cus_…)
+            first_name (str | Unset):
+            last_name (str | Unset):
+            full_name (str | Unset):
+            email (str | Unset):
+            document (CreateTransactionBodyCustomerDocument | Unset):
+            telephone (CreateTransactionBodyCustomerTelephone | Unset):
+            external_reference (str | Unset):
+            gender (CreateTransactionBodyCustomerGender | Unset):
+            birthdate (str | Unset):
+            additional_emails (list[str] | Unset):
+            metadata (CreateTransactionBodyCustomerMetadata | Unset):
     """
 
     id: str | Unset = UNSET
