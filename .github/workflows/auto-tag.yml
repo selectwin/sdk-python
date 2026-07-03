@@ -1,0 +1,79 @@
+name: Auto-tag on version bump
+
+# Removes the manual `git tag && push` from releasing. When pyproject.toml's version
+# changes on main, this tags the commit vX.Y.Z (git/GitHub record) and kicks the
+# Release workflow. The semver decision stays human — you bump the version in a
+# commit or PR; nothing here guesses it.
+#
+# A tag pushed with the default GITHUB_TOKEN does NOT trigger `on: push [tags]`
+# (GitHub's anti-recursion rule), so we create the tag for the record and then
+# explicitly dispatch release.yml. Its idempotency guard makes a duplicate trigger
+# a clean green no-op — never a double publish.
+
+on:
+  push:
+    branches: [main]
+    paths: ['pyproject.toml']
+
+concurrency:
+  group: auto-tag
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # create + push the tag
+  actions: write    # dispatch release.yml
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # HEAD + parent, enough to diff the version
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'   # tomllib (stdlib) needs >= 3.11
+
+      - name: Detect a version bump
+        id: v
+        run: |
+          NEW=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          # Read the parent commit's version from stdin — no temp file.
+          OLD=$(git show HEAD~1:pyproject.toml 2>/dev/null \
+                | python -c "import sys,tomllib;print(tomllib.load(sys.stdin.buffer)['project']['version'])" 2>/dev/null \
+                || echo "none")
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" != "$OLD" ]; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::version $OLD -> $NEW — will tag v$NEW"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::pyproject.toml changed but version is unchanged ($NEW) — no tag."
+          fi
+
+      - name: Skip if the tag already exists
+        id: exists
+        if: steps.v.outputs.bumped == 'true'
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v${{ steps.v.outputs.new }}" >/dev/null 2>&1; then
+            echo "::notice::tag v${{ steps.v.outputs.new }} already exists — nothing to do."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create + push tag
+        if: steps.v.outputs.bumped == 'true' && steps.exists.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.v.outputs.new }}" -m "v${{ steps.v.outputs.new }}"
+          git push origin "v${{ steps.v.outputs.new }}"
+
+      - name: Trigger the Release workflow
+        if: steps.v.outputs.bumped == 'true' && steps.exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run release.yml --ref main
+          echo "::notice::dispatched release.yml for v${{ steps.v.outputs.new }} (publishes if not already on PyPI)."
