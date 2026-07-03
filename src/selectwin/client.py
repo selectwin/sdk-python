@@ -11,6 +11,8 @@ typed-error mapping apply everywhere.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _dist_version
 from typing import Any, Optional
 
 import httpx
@@ -20,7 +22,14 @@ from .http import build_httpx_args
 from .resources import NAMESPACES
 from .webhooks import construct_event
 
-SDK_VERSION = "0.1.0"
+try:
+    # Single source of truth: the installed package metadata (from pyproject.toml).
+    # Never hand-edit a version constant here — it only drifts. Falls back to a dev
+    # marker when running from source without an install.
+    SDK_VERSION = _dist_version("selectwin")
+except PackageNotFoundError:  # pragma: no cover - source checkout, not installed
+    SDK_VERSION = "0.0.0-dev"
+
 DEFAULT_BASE_URL = "https://api.selectwin.io"
 
 
