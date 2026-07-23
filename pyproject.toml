@@ -34,7 +34,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://docs.selectwin.io"
+Homepage = "https://selectwin.io/docs/sdk/python/overview"
 Repository = "https://github.com/selectwin/sdk-python"
 
 [tool.hatch.build.targets.wheel]
