@@ -108,14 +108,18 @@ def construct_event(
     if signature_v1:
         parsed = _parse_v1(signature_v1)
         t, v1 = parsed.get("t"), parsed.get("v1")
-        if t and v1:
-            expected_v1 = _hmac_hex(secret, f"{t}.".encode("utf-8") + body)
-            if not hmac.compare_digest(v1, expected_v1):
-                raise SignatureVerificationError("Webhook v1 signature verification failed")
-            if tolerance is not None:
-                clock = now() if callable(now) else time.time()
-                if abs(int(clock) - int(t)) > tolerance:
-                    raise SignatureVerificationError("Webhook timestamp is outside the tolerance window")
+        # A v1 header present but not parseable into both t and v1 is malformed/tampered — reject it,
+        # never silently fall back to having only checked the legacy sha256= scheme (that's what the
+        # Node SDK and the WooCommerce plugin already do).
+        if not t or not v1:
+            raise SignatureVerificationError("Webhook v1 signature header is malformed")
+        expected_v1 = _hmac_hex(secret, f"{t}.".encode("utf-8") + body)
+        if not hmac.compare_digest(v1, expected_v1):
+            raise SignatureVerificationError("Webhook v1 signature verification failed")
+        if tolerance is not None:
+            clock = now() if callable(now) else time.time()
+            if abs(int(clock) - int(t)) > tolerance:
+                raise SignatureVerificationError("Webhook timestamp is outside the tolerance window")
 
     try:
         parsed_body = json.loads(body.decode("utf-8"))

@@ -83,3 +83,10 @@ class TestV1ReplayScheme:
     def test_rejects_forged_v1(self):
         with pytest.raises(SignatureVerificationError):
             construct_event(PAYLOAD, sign(PAYLOAD), SECRET, signature_v1=f"t={self.T},v1=deadbeef")
+
+    def test_rejects_malformed_v1(self):
+        # A v1 header present but unparseable (missing t, missing v1, or junk) must raise — never
+        # silently fall back to having checked only the legacy sha256= scheme (the body sig IS valid).
+        for bad in ("t=1000000", "v1=deadbeef", "garbage"):
+            with pytest.raises(SignatureVerificationError):
+                construct_event(PAYLOAD, sign(PAYLOAD), SECRET, signature_v1=bad)
