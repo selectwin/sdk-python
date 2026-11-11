@@ -105,6 +105,8 @@ spec) + a **hand-written DX shell**:
   `APIError`, `APIConnectionError`.
 - **Auto-retries** (429/5xx/network) with exponential backoff, honouring `Retry-After`.
 - **Idempotency** — an `X-Idempotency-Key` is added to every mutation (override per call).
+- **Safe paths** — a path parameter of `.` or `..` is refused before the request is built (it would reach another
+  endpoint); redirects are not followed.
 - **Timeouts** and one shared, pre-authenticated `httpx` client per SDK client.
 - **Auto-pagination** — sync (`for …`) and async (`async for …`) iterators, `.first()`,
   `.to_list(max=…)`, `.pages()`.

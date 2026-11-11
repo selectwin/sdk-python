@@ -113,3 +113,40 @@ async def test_async_sends_auth_and_maps_error():
     req = route.calls.last.request
     assert req.headers["selectkey"] == KEY
     assert "x-idempotency-key" in req.headers
+
+
+# --- Security sweep 31 (S-1): a "." / ".." ID would reach another endpoint ---------------------------------------
+# httpx resolves dot segments while building the request: DELETE /v1/products/prd_1/variants/.. left as
+# DELETE /v1/products/prd_1 — the whole product. Refused before the request is built; nothing is sent.
+
+from selectwin import ValidationError  # noqa: E402
+from selectwin.http import has_dot_segment  # noqa: E402
+
+
+@respx.mock
+def test_refuses_dot_segment_path_params_before_sending():
+    route = respx.route().mock(return_value=httpx.Response(204))
+    sw = Selectwin(KEY, max_retries=0)
+    for bad in ("..", "."):
+        with pytest.raises(ValidationError):
+            sw.variants.delete(product_id="prd_1", variant_id=bad)
+        with pytest.raises(ValidationError):
+            sw.customers.retrieve(bad)
+    assert route.call_count == 0
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_refuses_dot_segment_path_params_before_sending():
+    route = respx.route().mock(return_value=httpx.Response(204))
+    sw = AsyncSelectwin(KEY, max_retries=0)
+    with pytest.raises(ValidationError):
+        await sw.variants.delete(product_id="prd_1", variant_id="..")
+    assert route.call_count == 0
+
+
+def test_has_dot_segment_reads_the_raw_path_only():
+    for bad in ("/v1/products/prd_1/variants/..", "/v1/customers/./cards", "/v1/customers/%2E%2E", "https://h/v1/x/.%2e?q=1"):
+        assert has_dot_segment(bad), bad
+    for ok in ("/v1/customers/cus_1", "/v1/customers/cus_1.2", "/v1/customers/%252e%252e", "/v1/customers?q=.."):
+        assert not has_dot_segment(ok), ok

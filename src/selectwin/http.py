@@ -11,13 +11,14 @@ from __future__ import annotations
 
 import asyncio
 import random
+import re
 import time
 import uuid
 from typing import Any, Dict, Optional
 
 import httpx
 
-from .errors import APIConnectionError, error_from_status
+from .errors import APIConnectionError, ValidationError, error_from_status
 
 MUTATING = {"POST", "PUT", "PATCH", "DELETE"}
 # Retry only where a retry can plausibly help. NOT 409 (idempotency conflict).
@@ -136,6 +137,37 @@ async def _async_response_hook(response: httpx.Response) -> None:
     if response.status_code >= 400:
         await response.aread()
         _raise_typed(response)
+
+
+_DOT_SEGMENT = re.compile(r"^(?:\.|%2e){1,2}$", re.IGNORECASE)
+
+
+def has_dot_segment(url: str) -> bool:
+    """Does this URL (or relative path) carry a ``.`` or ``..`` path segment? Checked on the raw string."""
+    path = re.sub(r"^[a-z][a-z0-9+.-]*://[^/?#]*", "", url, flags=re.IGNORECASE)
+    path = re.split(r"[?#]", path, maxsplit=1)[0]
+    return any(_DOT_SEGMENT.match(segment) for segment in path.split("/"))
+
+
+def guard_dot_segments(client: Any) -> Any:
+    """Refuse a ``.``/``..`` path segment before httpx builds the request (security sweep 31, S-1).
+
+    The generated core quotes each ID with ``quote(..., safe="")``, which leaves dots alone, and httpx RESOLVES dot
+    segments while building the request: ``variants.delete("prd_1", "..")`` left as DELETE /v1/products/prd_1 —
+    another operation, with the key. A hook or transport only ever sees the resolved URL, so the check wraps
+    ``build_request`` itself, where the generated core's relative path is still raw. No Selectwin ID is ``.``/``..``.
+    """
+    build = client.build_request
+
+    def build_request(method: str, url: Any, *args: Any, **kwargs: Any) -> httpx.Request:
+        if isinstance(url, str) and has_dot_segment(url):
+            raise ValidationError(
+                'Selectwin: a path parameter cannot be "." or ".." (the request would reach another endpoint).'
+            )
+        return build(method, url, *args, **kwargs)
+
+    client.build_request = build_request
+    return client
 
 
 def build_httpx_args(

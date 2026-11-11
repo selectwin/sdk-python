@@ -18,7 +18,7 @@ from typing import Any, Optional
 import httpx
 
 from ._core.client import AuthenticatedClient
-from .http import build_httpx_args
+from .http import build_httpx_args, guard_dot_segments
 from .resources import NAMESPACES
 from .webhooks import construct_event
 
@@ -45,7 +45,7 @@ def _build_client(
 ) -> AuthenticatedClient:
     if not api_key:
         raise ValueError("Selectwin: an API key is required (sk_test_… or sk_live_…).")
-    return AuthenticatedClient(
+    client = AuthenticatedClient(
         base_url=base_url,
         token=api_key,
         auth_header_name="selectkey",  # Selectwin auth header…
@@ -56,6 +56,9 @@ def _build_client(
         raise_on_unexpected_status=False,  # errors are raised by the response hook
         httpx_args=build_httpx_args(is_async=is_async, max_retries=max_retries, verify_ssl=verify_ssl),
     )
+    # Built now (no I/O) so the dot-segment guard sits on the one httpx client every call goes through.
+    guard_dot_segments(client.get_async_httpx_client() if is_async else client.get_httpx_client())
+    return client
 
 
 class _BaseClient:
